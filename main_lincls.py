@@ -34,7 +34,12 @@ model_names = sorted(
 )
 
 parser = argparse.ArgumentParser(description="PyTorch ImageNet Training")
-parser.add_argument("data", metavar="DIR", help="path to dataset")
+parser.add_argument(
+    "data",
+    metavar="DIR",
+    default="picture",
+    help="path to dataset"
+)
 parser.add_argument(
     "-a",
     "--arch",
@@ -140,9 +145,10 @@ parser.add_argument(
 parser.add_argument(
     "--seed", default=None, type=int, help="seed for initializing training. "
 )
-parser.add_argument("--gpu", default=None, type=int, help="GPU id to use.")
+parser.add_argument("--gpu", default=0, type=int, help="GPU id to use.")
 parser.add_argument(
     "--multiprocessing-distributed",
+    default=False,
     action="store_true",
     help="Use multi-processing distributed training to launch "
     "N processes per node, which has N GPUs. This is the "
@@ -183,7 +189,7 @@ def main():
 
     args.distributed = args.world_size > 1 or args.multiprocessing_distributed
 
-    ngpus_per_node = torch.cuda.device_count()
+    ngpus_per_node = 1
     if args.multiprocessing_distributed:
         # Since we have ngpus_per_node processes per node, the total world_size
         # needs to be adjusted accordingly

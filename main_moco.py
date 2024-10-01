@@ -38,7 +38,12 @@ model_names = sorted(
 )
 
 parser = argparse.ArgumentParser(description="PyTorch ImageNet Training")
-parser.add_argument("data", metavar="DIR", help="path to dataset")
+parser.add_argument(
+    "data",
+    metavar="DIR",
+    default="picture",
+    help="path to dataset"
+)
 parser.add_argument(
     "-a",
     "--arch",
@@ -50,10 +55,10 @@ parser.add_argument(
 parser.add_argument(
     "-j",
     "--workers",
-    default=32,
+    default=8,
     type=int,
     metavar="N",
-    help="number of data loading workers (default: 32)",
+    help="number of data loading workers (default: 8)",
 )
 parser.add_argument(
     "--epochs", default=200, type=int, metavar="N", help="number of total epochs to run"
@@ -139,9 +144,10 @@ parser.add_argument(
 parser.add_argument(
     "--seed", default=None, type=int, help="seed for initializing training. "
 )
-parser.add_argument("--gpu", default=None, type=int, help="GPU id to use.")
+parser.add_argument("--gpu", default=0, type=int, help="GPU id to use.")
 parser.add_argument(
     "--multiprocessing-distributed",
+    default=False,
     action="store_true",
     help="Use multi-processing distributed training to launch "
     "N processes per node, which has N GPUs. This is the "
@@ -179,6 +185,7 @@ parser.add_argument("--cos", action="store_true", help="use cosine lr schedule")
 
 def main():
     args = parser.parse_args()
+    
 
     if args.seed is not None:
         random.seed(args.seed)
@@ -203,7 +210,7 @@ def main():
 
     args.distributed = args.world_size > 1 or args.multiprocessing_distributed
 
-    ngpus_per_node = torch.cuda.device_count()
+    ngpus_per_node = 1
     if args.multiprocessing_distributed:
         # Since we have ngpus_per_node processes per node, the total world_size
         # needs to be adjusted accordingly
@@ -279,11 +286,11 @@ def main_worker(gpu, ngpus_per_node, args):
         torch.cuda.set_device(args.gpu)
         model = model.cuda(args.gpu)
         # comment out the following line for debugging
-        raise NotImplementedError("Only DistributedDataParallel is supported.")
-    else:
+        #raise NotImplementedError("Only DistributedDataParallel is supported.")
+    #else:
         # AllGather implementation (batch shuffle, queue update, etc.) in
         # this code only supports DistributedDataParallel.
-        raise NotImplementedError("Only DistributedDataParallel is supported.")
+        #raise NotImplementedError("Only DistributedDataParallel is supported.")
 
     # define loss function (criterion) and optimizer
     criterion = nn.CrossEntropyLoss().cuda(args.gpu)
@@ -509,7 +516,7 @@ def accuracy(output, target, topk=(1,)):
 
         res = []
         for k in topk:
-            correct_k = correct[:k].view(-1).float().sum(0, keepdim=True)
+            correct_k = correct[:k].contiguous().view(-1).float().sum(0, keepdim=True)
             res.append(correct_k.mul_(100.0 / batch_size))
         return res
 
